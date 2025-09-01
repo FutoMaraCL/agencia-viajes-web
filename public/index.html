@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Agencia Viajes – Búsqueda de Vuelos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <h1>Buscar vuelos</h1>
+  <form id="form-vuelos">
+    <label>Origen: <input id="origen" required placeholder="SCL"></label><br>
+    <label>Destino: <input id="destino" required placeholder="BCN"></label><br>
+    <label>Ida: <input type="date" id="ida" required></label><br>
+    <label>Vuelta: <input type="date" id="vuelta"></label><br>
+    <button type="submit">Buscar</button>
+  </form>
+  <pre id="resultado"></pre>
+  <script src="../src/js/search.js"></script>
+</body>
+</html>
