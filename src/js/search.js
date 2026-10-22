@@ -1,3 +1,5 @@
+import { validateForm, vueltaVisible, primerCampoInvalido, resumenErrores, intercambiar } from "./validation.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-vuelos");
   const salida = document.getElementById("resultado");
@@ -15,8 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const vuelta = document.getElementById("vuelta");
   const tipoViajeInputs = document.querySelectorAll("input[name='tipo-viaje']");
 
-  // Usar TripValidation helpers
-  const { validateForm, vueltaVisible, primerCampoInvalido, resumenErrores, intercambiar } = window.TripValidation;
+
 
   // Estado inicial
   boton.disabled = true;

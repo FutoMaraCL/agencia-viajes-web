@@ -69,30 +69,14 @@ function intercambiar(origen, destino) {
   return { origen: destino, destino: origen };
 }
 
-// Exportar para uso en otros módulos
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    validateForm,
-    validar,
-    hasErrors,
-    normalizar,
-    primerCampoInvalido,
-    resumenErrores,
-    vueltaVisible,
-    intercambiar
-  };
-}
-
-// También disponible como global TripValidation para uso en navegador sin módulos ES
-if (typeof window !== "undefined") {
-  window.TripValidation = {
-    validateForm,
-    validar,
-    hasErrors,
-    normalizar,
-    primerCampoInvalido,
-    resumenErrores,
-    vueltaVisible,
-    intercambiar
-  };
-}
+// Exportar como módulo ESM
+export {
+  validateForm,
+  validar,
+  hasErrors,
+  normalizar,
+  primerCampoInvalido,
+  resumenErrores,
+  vueltaVisible,
+  intercambiar
+};

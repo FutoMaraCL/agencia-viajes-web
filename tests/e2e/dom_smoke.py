@@ -2,30 +2,73 @@
 """
 Pruebas de smoke (e2e) con Playwright — Búsqueda de viajes
 Verifica comportamiento del DOM: visibilidad, foco, ARIA, errores.
+
+DEPENDENCIAS:
+- Python 3.8+
+- Playwright (instalación: pip install playwright)
+- Chromium (instalación: playwright install chromium)
+
+NOTA: Playwright requiere instalación explícita de Chromium via:
+  playwright install chromium
+Si se ejecuta en un contenedor o entorno sin X11, usar:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 playwright install chromium --with-deps
+
+REQUISITOS PREVIOS:
+1. Asegurar que validation.js y search.js estén compilados/disponibles
+2. Ejecutar desde la raíz del repositorio: python tests/e2e/dom_smoke.py
+3. El servidor HTTP local se levanta automáticamente en puerto 8000
 """
 
+import os
 import subprocess
 import sys
+import time
 from pathlib import Path
+from threading import Thread
 
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
-    print("⚠️  Playwright no instalado. Instalando...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "playwright"])
-    from playwright.sync_api import sync_playwright
+    print("❌ Playwright no instalado.")
+    print("   Instalar con: pip install playwright")
+    print("   Luego descargar navegadores: playwright install chromium")
+    sys.exit(1)
+
+
+def start_http_server(port=8000, directory=None):
+    """Inicia un servidor HTTP simple en un thread."""
+    if directory is None:
+        directory = Path(__file__).parent.parent.parent
+    
+    def run_server():
+        import http.server
+        import socketserver
+        
+        os.chdir(directory)
+        handler = http.server.SimpleHTTPRequestHandler
+        with socketserver.TCPServer(("", port), handler) as httpd:
+            print(f"🌐 Servidor HTTP levantado en http://localhost:{port}")
+            httpd.serve_forever()
+    
+    server_thread = Thread(target=run_server, daemon=True)
+    server_thread.start()
+    time.sleep(0.5)  # Dar tiempo al servidor para levantarse
+
 
 def test_dom_smoke():
     """Ejecutar pruebas de smoke en navegador real."""
-    repo_root = Path(__file__).parent.parent.parent
-    html_path = (repo_root / "public" / "index.html").resolve()
-    file_url = f"file://{html_path}"
-
+    
+    # Levantar servidor HTTP
+    import os
+    start_http_server(port=8000)
+    
+    base_url = "http://localhost:8000"
+    
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
-        page.goto(file_url)
-
+        page.goto(f"{base_url}/public/index.html")
+        
         results = []
 
         # Test 1: Vuelta visible solo para "Ida y vuelta"
@@ -223,6 +266,13 @@ def test_dom_smoke():
     
     return passed == total
 
+
 if __name__ == "__main__":
-    success = test_dom_smoke()
-    sys.exit(0 if success else 1)
+    try:
+        success = test_dom_smoke()
+        sys.exit(0 if success else 1)
+    except Exception as e:
+        print(f"❌ Error durante ejecución: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
