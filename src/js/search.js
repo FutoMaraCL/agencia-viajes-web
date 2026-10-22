@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Intercambiar origen y destino
   const intercambiarUbicaciones = (e) => {
     e.preventDefault();
-    const { origen: nuevoDestino, destino: nuevoOrigen } = intercambiar(origen.value, destino.value);
+    const { origen: nuevoOrigen, destino: nuevoDestino } = intercambiar(origen.value, destino.value);
     origen.value = nuevoOrigen;
     destino.value = nuevoDestino;
     
