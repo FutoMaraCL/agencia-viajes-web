@@ -32,9 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const tipo = getTipoViaje();
     if (vueltaVisible(tipo)) {
       labelVuelta.style.display = "block";
+      vuelta.style.display = "block";
       vuelta.required = true;
     } else {
       labelVuelta.style.display = "none";
+      vuelta.style.display = "none";
       vuelta.required = false;
       vuelta.value = "";
       limpiarError("vuelta");
