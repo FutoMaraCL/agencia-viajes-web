@@ -23,7 +23,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from threading import Thread
+from threading import Thread, Event
 
 try:
     from playwright.sync_api import sync_playwright
@@ -44,6 +44,7 @@ def start_http_server(directory=None):
         directory = Path(__file__).parent.parent.parent
     
     actual_port = [None]  # Mutable para capturar puerto desde thread
+    port_ready = Event()   # Evento para sincronizar arranque
     
     def run_server():
         import http.server
@@ -54,12 +55,13 @@ def start_http_server(directory=None):
         # Puerto 0 = obtener puerto disponible automáticamente
         with socketserver.TCPServer(("127.0.0.1", 0), handler) as httpd:
             actual_port[0] = httpd.server_address[1]
+            port_ready.set()  # Señalizar que puerto está listo
             print(f"🌐 Servidor HTTP levantado en http://localhost:{actual_port[0]}")
             httpd.serve_forever()
     
     server_thread = Thread(target=run_server, daemon=True)
     server_thread.start()
-    time.sleep(0.5)  # Dar tiempo al servidor para levantarse
+    port_ready.wait()  # Esperar a que el hilo arranque y obtenga puerto
     return actual_port[0]
 
 
