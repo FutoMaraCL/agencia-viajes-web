@@ -16,11 +16,10 @@ Si se ejecuta en un contenedor o entorno sin X11, usar:
 REQUISITOS PREVIOS:
 1. Asegurar que validation.js y search.js estén compilados/disponibles
 2. Ejecutar desde la raíz del repositorio: python tests/e2e/dom_smoke.py
-3. El servidor HTTP local se levanta automáticamente en puerto 8000
+3. El servidor HTTP local se levanta automáticamente en puerto dinámico para evitar conflictos
 """
 
 import os
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -35,10 +34,16 @@ except ImportError:
     sys.exit(1)
 
 
-def start_http_server(port=8000, directory=None):
-    """Inicia un servidor HTTP simple en un thread."""
+def start_http_server(directory=None):
+    """Inicia un servidor HTTP simple en un thread con puerto dinámico.
+    
+    Retorna el puerto real en uso. Usa puerto 0 para obtener uno disponible
+    automáticamente, evitando conflictos.
+    """
     if directory is None:
         directory = Path(__file__).parent.parent.parent
+    
+    actual_port = [None]  # Mutable para capturar puerto desde thread
     
     def run_server():
         import http.server
@@ -46,23 +51,24 @@ def start_http_server(port=8000, directory=None):
         
         os.chdir(directory)
         handler = http.server.SimpleHTTPRequestHandler
-        with socketserver.TCPServer(("", port), handler) as httpd:
-            print(f"🌐 Servidor HTTP levantado en http://localhost:{port}")
+        # Puerto 0 = obtener puerto disponible automáticamente
+        with socketserver.TCPServer(("127.0.0.1", 0), handler) as httpd:
+            actual_port[0] = httpd.server_address[1]
+            print(f"🌐 Servidor HTTP levantado en http://localhost:{actual_port[0]}")
             httpd.serve_forever()
     
     server_thread = Thread(target=run_server, daemon=True)
     server_thread.start()
     time.sleep(0.5)  # Dar tiempo al servidor para levantarse
+    return actual_port[0]
 
 
 def test_dom_smoke():
     """Ejecutar pruebas de smoke en navegador real."""
     
-    # Levantar servidor HTTP
-    import os
-    start_http_server(port=8000)
-    
-    base_url = "http://localhost:8000"
+    # Levantar servidor HTTP en puerto dinámico
+    port = start_http_server()
+    base_url = f"http://localhost:{port}"
     
     with sync_playwright() as p:
         browser = p.chromium.launch()
