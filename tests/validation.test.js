@@ -1,30 +1,8 @@
 import { describe, it, expect } from "bun:test";
-
-function validateForm(formData) {
-  const errors = {};
-  const origenNormalizado = (formData.origen || "").trim().toUpperCase();
-  const destinoNormalizado = (formData.destino || "").trim().toUpperCase();
-
-  if (origenNormalizado && destinoNormalizado && origenNormalizado === destinoNormalizado) {
-    errors.destino = "El destino no puede ser igual al origen.";
-  }
-
-  if (formData.tipoViaje === "ida-vuelta" && formData.ida && formData.vuelta) {
-    const fechaIda = new Date(formData.ida);
-    const fechaVuelta = new Date(formData.vuelta);
-    if (fechaVuelta < fechaIda) {
-      errors.vuelta = "La fecha de vuelta no puede ser anterior a la de ida.";
-    }
-  }
-
-  if (formData.tipoViaje === "ida-vuelta" && !formData.vuelta) {
-    errors.vuelta = "La fecha de vuelta es obligatoria para viajes de ida y vuelta.";
-  }
-
-  return errors;
-}
+import { validateForm, validar, hasErrors, normalizar, primerCampoInvalido, resumenErrores, vueltaVisible, intercambiar } from "../src/js/validation.js";
 
 describe("Validación de formulario de búsqueda de viajes", () => {
+  // Tests de validateForm (función principal)
   it("Debe pasar con datos válidos para viaje de ida", () => {
     const formData = {
       tipoViaje: "ida",
@@ -121,5 +99,56 @@ describe("Validación de formulario de búsqueda de viajes", () => {
     };
     const errores = validateForm(formData);
     expect(errores.vuelta).toBeUndefined();
+  });
+
+  // Tests de helpers
+  it("hasErrors: debe retornar true si hay errores", () => {
+    const errores = { destino: "Error" };
+    expect(hasErrors(errores)).toBe(true);
+  });
+
+  it("hasErrors: debe retornar false si no hay errores", () => {
+    const errores = {};
+    expect(hasErrors(errores)).toBe(false);
+  });
+
+  it("normalizar: debe convertir a uppercase y trim", () => {
+    expect(normalizar(" scl  ")).toBe("SCL");
+    expect(normalizar("BCN")).toBe("BCN");
+  });
+
+  it("primerCampoInvalido: debe retornar el campo en orden de prioridad", () => {
+    const errores = { origen: "error", destino: "error" };
+    expect(primerCampoInvalido(errores)).toBe("destino");
+  });
+
+  it("resumenErrores: debe retornar array de mensajes", () => {
+    const errores = { destino: "Msg 1", vuelta: "Msg 2" };
+    const resumen = resumenErrores(errores);
+    expect(resumen.length).toBe(2);
+    expect(resumen).toContain("Msg 1");
+  });
+
+  it("vueltaVisible: debe retornar true para ida-vuelta", () => {
+    expect(vueltaVisible("ida-vuelta")).toBe(true);
+    expect(vueltaVisible("ida")).toBe(false);
+  });
+
+  it("intercambiar: debe intercambiar origen y destino", () => {
+    const { origen, destino } = intercambiar("SCL", "BCN");
+    expect(origen).toBe("BCN");
+    expect(destino).toBe("SCL");
+  });
+
+  it("validar (alias): debe funcionar igual que validateForm", () => {
+    const formData = {
+      tipoViaje: "ida",
+      origen: "SCL",
+      destino: "BCN",
+      ida: "2026-11-15",
+      vuelta: ""
+    };
+    const errores = validar(formData);
+    expect(Object.keys(errores).length).toBe(0);
   });
 });

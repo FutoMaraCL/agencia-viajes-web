@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const vuelta = document.getElementById("vuelta");
   const tipoViajeInputs = document.querySelectorAll("input[name='tipo-viaje']");
 
+  // Usar TripValidation helpers
+  const { validateForm, vueltaVisible, primerCampoInvalido, resumenErrores, intercambiar } = window.TripValidation;
+
   // Estado inicial
   boton.disabled = true;
   salida.textContent = "";
@@ -27,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mostrar/ocultar campo de vuelta basado en tipo de viaje
   const actualizarVuelta = () => {
     const tipo = getTipoViaje();
-    if (tipo === "ida-vuelta") {
+    if (vueltaVisible(tipo)) {
       labelVuelta.style.display = "block";
       vuelta.required = true;
     } else {
@@ -35,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
       vuelta.required = false;
       vuelta.value = "";
       limpiarError("vuelta");
+      // Limpiar resumen al cambiar tipo
+      errorSummary.classList.remove("visible");
+      errorList.innerHTML = "";
     }
     actualizarBoton();
   };
@@ -44,6 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorDiv = document.getElementById(`error-${campo}`);
     if (errorDiv) {
       errorDiv.textContent = "";
+      // Actualizar aria-invalid
+      const input = document.getElementById(campo);
+      if (input) {
+        input.setAttribute("aria-invalid", "false");
+      }
     }
   };
 
@@ -52,6 +63,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorDiv = document.getElementById(`error-${campo}`);
     if (errorDiv) {
       errorDiv.textContent = mensaje;
+      // Actualizar aria-invalid
+      const input = document.getElementById(campo);
+      if (input) {
+        input.setAttribute("aria-invalid", "true");
+      }
     }
   };
 
@@ -71,6 +87,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".error-field").forEach(div => {
       div.textContent = "";
     });
+    document.querySelectorAll("input[type='text'], input[type='date']").forEach(input => {
+      input.setAttribute("aria-invalid", "false");
+    });
     errorSummary.classList.remove("visible");
     errorList.innerHTML = "";
     salida.textContent = "";
@@ -87,14 +106,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Validar
     const errores = validateForm(formData);
 
-    if (hasErrors(errores)) {
+    if (Object.keys(errores).length > 0) {
       // Mostrar errores por campo
       Object.entries(errores).forEach(([campo, mensaje]) => {
         mostrarError(campo, mensaje);
       });
 
       // Mostrar resumen de errores
-      Object.entries(errores).forEach(([campo, mensaje]) => {
+      const resumen = resumenErrores(errores);
+      resumen.forEach(mensaje => {
         const li = document.createElement("li");
         li.textContent = mensaje;
         errorList.appendChild(li);
@@ -102,8 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
       errorSummary.classList.add("visible");
 
       // Llevar foco al primer campo inválido
-      const primerCampoInvalido = Object.keys(errores)[0];
-      const inputPrimero = document.getElementById(primerCampoInvalido);
+      const primerCampo = primerCampoInvalido(errores);
+      const inputPrimero = document.getElementById(primerCampo);
       if (inputPrimero) {
         inputPrimero.focus();
       }
@@ -118,14 +138,19 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Intercambiar origen y destino
-  const intercambiar = (e) => {
+  const intercambiarUbicaciones = (e) => {
     e.preventDefault();
-    const temp = origen.value;
-    origen.value = destino.value;
-    destino.value = temp;
-    actualizarBoton();
+    const { origen: nuevoDestino, destino: nuevoOrigen } = intercambiar(origen.value, destino.value);
+    origen.value = nuevoOrigen;
+    destino.value = nuevoDestino;
+    
+    // Limpiar errores después de intercambiar
     limpiarError("origen");
     limpiarError("destino");
+    errorSummary.classList.remove("visible");
+    errorList.innerHTML = "";
+    
+    actualizarBoton();
   };
 
   // Event listeners
@@ -135,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("input", actualizarBoton);
   form.addEventListener("submit", validarYEnviar);
-  swapBtn.addEventListener("click", intercambiar);
+  swapBtn.addEventListener("click", intercambiarUbicaciones);
 
   // Inicializar
   actualizarVuelta();

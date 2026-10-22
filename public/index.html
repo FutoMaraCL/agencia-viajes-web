@@ -10,6 +10,7 @@
     fieldset { border: none; padding: 0; margin: 0 0 1rem 0; }
     label { display: block; margin-bottom: 0.5rem; }
     input { padding: 0.25rem; }
+    input[aria-invalid="true"] { border-color: #d32f2f; background-color: #ffebee; }
     button { padding: 0.5rem 1rem; margin-top: 0.5rem; cursor: pointer; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .error-field { color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem; }
@@ -35,29 +36,33 @@
 
     <fieldset>
       <legend>Ubicaciones</legend>
-      <label>
-        Origen: <input id="origen" required placeholder="SCL">
+      <label for="origen">
+        Origen:
       </label>
+      <input id="origen" required placeholder="SCL" aria-describedby="error-origen" aria-invalid="false">
       <div id="error-origen" class="error-field" role="alert" aria-live="polite"></div>
 
       <button type="button" class="swap-btn" id="swap-btn" title="Intercambiar origen y destino">⇄ Intercambiar</button>
 
-      <label>
-        Destino: <input id="destino" required placeholder="BCN">
+      <label for="destino">
+        Destino:
       </label>
+      <input id="destino" required placeholder="BCN" aria-describedby="error-destino" aria-invalid="false">
       <div id="error-destino" class="error-field" role="alert" aria-live="polite"></div>
     </fieldset>
 
     <fieldset>
       <legend>Fechas</legend>
-      <label>
-        Ida: <input type="date" id="ida" required>
+      <label for="ida">
+        Ida:
       </label>
+      <input type="date" id="ida" required aria-describedby="error-ida" aria-invalid="false">
       <div id="error-ida" class="error-field" role="alert" aria-live="polite"></div>
 
-      <label id="label-vuelta" style="display: none;">
-        Vuelta: <input type="date" id="vuelta">
+      <label for="vuelta" id="label-vuelta" style="display: none;">
+        Vuelta:
       </label>
+      <input type="date" id="vuelta" aria-describedby="error-vuelta" aria-invalid="false" style="display: none;">
       <div id="error-vuelta" class="error-field" role="alert" aria-live="polite"></div>
     </fieldset>
 
