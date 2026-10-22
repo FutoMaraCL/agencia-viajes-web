@@ -4,18 +4,73 @@
   <meta charset="utf-8" />
   <title>Agencia Viajes – Búsqueda de Vuelos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    form { margin-top: 1rem; }
+    fieldset { border: none; padding: 0; margin: 0 0 1rem 0; }
+    label { display: block; margin-bottom: 0.5rem; }
+    input { padding: 0.25rem; }
+    button { padding: 0.5rem 1rem; margin-top: 0.5rem; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-field { color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem; }
+    .swap-btn { padding: 0.5rem; margin: 0.5rem 0; background: #f5f5f5; border: 1px solid #ccc; cursor: pointer; }
+    #error-summary { color: #d32f2f; margin: 1rem 0; padding: 1rem; background: #ffebee; border-left: 4px solid #d32f2f; display: none; }
+    #error-summary.visible { display: block; }
+    #error-summary h2 { margin: 0 0 0.5rem 0; font-size: 1rem; }
+    #error-summary ul { margin: 0; padding-left: 1.5rem; }
+  </style>
 </head>
 <body>
   <h1>Buscar vuelos</h1>
   <form id="form-vuelos">
-    <label>Origen: <input id="origen" required placeholder="SCL"></label><br>
-    <label>Destino: <input id="destino" required placeholder="BCN"></label><br>
-    <label>Ida: <input type="date" id="ida" required></label><br>
-    <label>Vuelta: <input type="date" id="vuelta"></label><br>
+    <fieldset>
+      <legend>Tipo de viaje</legend>
+      <label>
+        <input type="radio" name="tipo-viaje" value="ida" checked> Solo ida
+      </label>
+      <label>
+        <input type="radio" name="tipo-viaje" value="ida-vuelta"> Ida y vuelta
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ubicaciones</legend>
+      <label>
+        Origen: <input id="origen" required placeholder="SCL">
+      </label>
+      <div id="error-origen" class="error-field" role="alert" aria-live="polite"></div>
+
+      <button type="button" class="swap-btn" id="swap-btn" title="Intercambiar origen y destino">⇄ Intercambiar</button>
+
+      <label>
+        Destino: <input id="destino" required placeholder="BCN">
+      </label>
+      <div id="error-destino" class="error-field" role="alert" aria-live="polite"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Fechas</legend>
+      <label>
+        Ida: <input type="date" id="ida" required>
+      </label>
+      <div id="error-ida" class="error-field" role="alert" aria-live="polite"></div>
+
+      <label id="label-vuelta" style="display: none;">
+        Vuelta: <input type="date" id="vuelta">
+      </label>
+      <div id="error-vuelta" class="error-field" role="alert" aria-live="polite"></div>
+    </fieldset>
+
+    <div id="error-summary" role="alert" aria-live="assertive" aria-atomic="true">
+      <h2>Errores encontrados:</h2>
+      <ul id="error-list"></ul>
+    </div>
+
     <button type="submit">Buscar</button>
   </form>
   <p id="ayuda">Completa Origen, Destino e Ida para habilitar el botón Buscar.</p>
   <pre id="resultado"></pre>
+  <script src="../src/js/validation.js"></script>
   <script src="../src/js/search.js"></script>
 </body>
 </html>
